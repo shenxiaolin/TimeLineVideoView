@@ -35,9 +35,8 @@ public class SeekerViewContainer extends LinearLayout {
     public void addVideo(Video video) {
         SeekerView seekerView = new SeekerView(getContext());
         seekerView.setDuration(video);
-        LayoutParams layoutParams = getLayoutParamsForSeekerView();
-        seekerView.setLayoutParams(layoutParams);
-        this.addView(seekerView);
+        seekerView.setLayoutParams(getLayoutParamsForSeekerView());
+        addView(seekerView);
     }
 
     private LayoutParams getLayoutParamsForSeekerView() {

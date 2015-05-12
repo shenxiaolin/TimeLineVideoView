@@ -8,7 +8,6 @@ import android.widget.TextView;
 public class ControlActivity extends ActionBarActivity implements SeekerView.OnSegmentStartChangedListener {
 
     private TextView textView;
-    private SeekerViewContainer seekerViewContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,10 +18,7 @@ public class ControlActivity extends ActionBarActivity implements SeekerView.OnS
 
     private void initViews() {
         textView = (TextView) findViewById(R.id.textView);
-        seekerViewContainer = (SeekerViewContainer) findViewById(R.id.seekerViewContainer);
-        seekerViewContainer.addVideo(new Video(20));
-        seekerViewContainer.addVideo(new Video(10));
-        seekerViewContainer.addVideo(new Video(15));
+        ((SeekerView) findViewById(R.id.seekerView)).setDuration(new Video(20));
     }
 
     @Override

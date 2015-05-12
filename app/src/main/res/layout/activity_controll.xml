@@ -6,12 +6,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin">
 
-    <com.stom.videoseekerproject.SeekerViewContainer
-        android:id="@+id/seekerViewContainer"
+    <com.stom.videoseekerproject.SeekerView
+        android:id="@+id/seekerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/textView"
-        android:layout_alignParentTop="true" />
+        android:layout_height="60dp"/>
 
     <TextView
         android:id="@+id/textView"

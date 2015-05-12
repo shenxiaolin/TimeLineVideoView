@@ -79,6 +79,8 @@ public class SeekerView extends View implements View.OnTouchListener {
         currentRect = new Rect(x, 0, getWidth() * duration / totalDuration + x, getHeight());
     }
 
+    int touchX;
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int x = (int) event.getX() - getLeft();
@@ -87,6 +89,7 @@ public class SeekerView extends View implements View.OnTouchListener {
             case MotionEvent.ACTION_DOWN:
                 if (currentRect.left <= x && currentRect.right >= x) {
                     isMoving = true;
+                    touchX = x;
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -95,7 +98,7 @@ public class SeekerView extends View implements View.OnTouchListener {
                         x = 0;
                     if (x > getWidth() - getWidth() * duration / totalDuration)
                         x = getWidth() - getWidth() * duration / totalDuration;
-                    this.x = x;
+                    this.x += x - touchX;
                     updateRect();
                     invalidate();
                     if (listener != null)
