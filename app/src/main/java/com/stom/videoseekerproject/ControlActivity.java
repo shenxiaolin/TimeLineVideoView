@@ -5,8 +5,9 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.TextView;
 
-public class ControlActivity extends ActionBarActivity implements SeekerView.OnSegmentStartChangedListener {
+public class ControlActivity extends ActionBarActivity implements View.OnClickListener, TimeIndicatorView.OnSeekListener {
 
+    private SeekerViewContainer seekerViewContainer;
     private TextView textView;
 
     @Override
@@ -17,12 +18,24 @@ public class ControlActivity extends ActionBarActivity implements SeekerView.OnS
     }
 
     private void initViews() {
+        seekerViewContainer = (SeekerViewContainer) findViewById(R.id.seekerViewContainer);
         textView = (TextView) findViewById(R.id.textView);
-        ((SeekerView) findViewById(R.id.seekerView)).setDuration(new Video(20));
+
+        seekerViewContainer.setOnSeekListener(this);
+        findViewById(R.id.addButton).setOnClickListener(this);
     }
 
     @Override
-    public void onSegmentStartChanged(View view, float seconds) {
-        textView.setText(Float.toString(seconds));
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.addButton:
+                seekerViewContainer.addVideo(new Video(15));
+                break;
+        }
+    }
+
+    @Override
+    public void onTimeIndicatonSeek(long time) {
+        textView.setText(Long.toString(time));
     }
 }

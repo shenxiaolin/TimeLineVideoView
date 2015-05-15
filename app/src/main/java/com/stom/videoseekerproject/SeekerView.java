@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -14,21 +15,26 @@ import android.view.View;
  */
 public class SeekerView extends View implements View.OnTouchListener {
 
-    public static interface OnSegmentStartChangedListener {
-        void onSegmentStartChanged(View view, float seconds);
+    public static interface OnSeekListener {
+        void onSeek(long start, long end);
     }
 
-    private int duration;
-    private int totalDuration = 30;
+    private static final long TOTAL_DURATION = 30000;
 
-    private int x;
+    private long duration;
+    private float position;
     private Rect currentRect;
 
-    private Paint paint = new Paint();
+    private Paint segmentPaint = new Paint();
+    private Paint backgroundPaint = new Paint();
+    private int indicatorWidth;
 
+    private float touchX, startPosition;
     private boolean isMoving = false;
 
-    private OnSegmentStartChangedListener listener;
+    private Video video;
+
+    private OnSeekListener listener;
 
     public SeekerView(Context context) {
         super(context);
@@ -47,23 +53,36 @@ public class SeekerView extends View implements View.OnTouchListener {
 
     private void initView() {
         setOnTouchListener(this);
-        paint.setColor(Color.BLACK);
+        backgroundPaint.setColor(Color.GRAY);
+        segmentPaint.setColor(Color.BLACK);
+        indicatorWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TimeIndicatorView.INDICATOR_WIDTH_DP, getResources().getDisplayMetrics());
     }
 
-    public void setDuration(Video video) {
-        duration = video.duration;
+    public void setVideo(Video video) {
+        this.video = video;
+        this.duration = video.duration;
+        if (listener != null)
+            listener.onSeek(0, video.duration);
     }
 
-    public void setTotalDuration(int totalDuration) {
-        this.totalDuration = totalDuration;
+    public Video getVideo() {
+        return video;
     }
 
-    public void setListener(OnSegmentStartChangedListener listener) {
+    public long getDuration() {
+        return duration;
+    }
+
+    public long getSegmentStart() {
+        return (long) (TOTAL_DURATION * position / (getWidth() - indicatorWidth));
+    }
+
+    public float getSegmentEnd() {
+        return 0;
+    }
+
+    public void setOnSeekListener(OnSeekListener listener) {
         this.listener = listener;
-    }
-
-    public float getSegmentStart() {
-        return (float) x / getWidth() * totalDuration;
     }
 
     @Override
@@ -71,15 +90,14 @@ public class SeekerView extends View implements View.OnTouchListener {
         super.onDraw(canvas);
         if (currentRect == null)
             updateRect();
-        canvas.drawColor(Color.GRAY);
-        canvas.drawRect(currentRect, paint);
+        canvas.drawRect(indicatorWidth / 2, 0, getWidth() - indicatorWidth / 2, getHeight(), backgroundPaint);
+        canvas.drawRect(currentRect, segmentPaint);
     }
 
     private void updateRect() {
-        currentRect = new Rect(x, 0, getWidth() * duration / totalDuration + x, getHeight());
+        currentRect = new Rect((int) position + indicatorWidth / 2, 0,
+                (int) ((getWidth() - indicatorWidth) * duration / TOTAL_DURATION + position + indicatorWidth / 2), getHeight());
     }
-
-    int touchX;
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -87,22 +105,24 @@ public class SeekerView extends View implements View.OnTouchListener {
         int y = (int) event.getY() - getTop();
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                if (currentRect.left <= x && currentRect.right >= x) {
+                if (x >= currentRect.left && x <= currentRect.right) {
                     isMoving = true;
                     touchX = x;
+                    startPosition = position;
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isMoving) {
-                    if (x < 0)
-                        x = 0;
-                    if (x > getWidth() - getWidth() * duration / totalDuration)
-                        x = getWidth() - getWidth() * duration / totalDuration;
-                    this.x += x - touchX;
+                    float tempPosition = startPosition + x - touchX;
+                    if (tempPosition < 0)
+                        tempPosition = 0;
+                    if (tempPosition > (getWidth() - indicatorWidth) * (1 - (float)duration / TOTAL_DURATION))
+                        tempPosition = (getWidth() - indicatorWidth) * (1 - (float)duration / TOTAL_DURATION);
+                    this.position = tempPosition;
                     updateRect();
                     invalidate();
                     if (listener != null)
-                        listener.onSegmentStartChanged(this, getSegmentStart());
+                        listener.onSeek(getSegmentStart(), getSegmentStart() + duration);
                 }
                 break;
             case MotionEvent.ACTION_UP:
